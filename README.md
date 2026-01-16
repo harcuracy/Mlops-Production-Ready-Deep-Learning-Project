@@ -1,4 +1,4 @@
-# Mlops-Production-Ready-Learning-Project
+# Mlops-Production-Ready-Deep-Learning-Project
 
 ## Workflows
 

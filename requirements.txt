@@ -1,11 +1,13 @@
 tensorflow==2.12.0
 pandas
 gdown
+dagshub 
 dvc
-mlflow==2.2.2
+mlflow
 notebook
 numpy
 matplotlib
+scikit-learn
 seaborn
 python-box==6.0.2
 pyYAML
