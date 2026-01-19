@@ -1,30 +1,29 @@
 from cnnClassifier.config.configuration import ConfigurationManager
-from cnnClassifier.components.data_ingestion import DataIngestion
+from cnnClassifier.components.training import Training
 from cnnClassifier import logger
 
 
-STAGE_NAME = "Data Ingestion Stage"
+STAGE_NAME = "Training Stage"
 
 
 
-class DataIngestionTrainingPipeline:
+class TrainingPipeline:
     def __init__(self):
         pass
-
     def main(self):
         config = ConfigurationManager()
-        data_ingestion_config = config.get_data_ingestion_config
-        data_ingestion = DataIngestion(config = data_ingestion_config())
-        data_ingestion.download_file()
-        data_ingestion.extract_zip_file()
-
+        training_config = config.get_training_config()
+        training = Training(config = training_config)
+        training.get_base_model()
+        training.train_valid_generator()
+        training.train()
 
 
 if __name__ == "__main__":
     try:
 
         logger.info(f">>>>>>>> Stage {STAGE_NAME} have started! <<<<<<<<")
-        obj = DataIngestionTrainingPipeline()
+        obj = TrainingPipeline()
         obj.main()
         logger.info(f">>>>>>>> Stage {STAGE_NAME} have completed! <<<<<<<<")
 
