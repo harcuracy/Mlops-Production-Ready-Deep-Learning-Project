@@ -4,7 +4,7 @@ from cnnClassifier.constants import *
 from cnnClassifier.utils.common import read_yaml,create_directories
 from cnnClassifier.entity.config_entity import (DataIngestionConfig,
                                                 PrepareBaseModelConfig,
-                                                TrainingConfig)
+                                                TrainingConfig,EvaluationConfig)
 
 
 
@@ -70,6 +70,25 @@ class ConfigurationManager:
 
   )
         return training_config
+    
+    def get_evaluation_config(self) -> EvaluationConfig:
+        training = self.Config.training
+        model_uri = self.Config.evaluation.model_uri
+
+        evaluation_config = EvaluationConfig(
+            path_of_model= Path(training.trained_model_path),
+            training_data= os.path.join(self.Config.data_ingestion.unzip_dir,"Data", "train"),
+            testing_data=  None, #os.path.join(self.Config.data_ingestion.unzip_dir,"Data","test"), # None
+            mlflow_uri= model_uri,
+            all_params= self.Params,
+            params_batch_size= self.Params.BATCH_SIZE,
+            params_image_size=self.Params.IMAGE_SIZE
+
+        )
+
+        return evaluation_config
+            
+
 
 
         
