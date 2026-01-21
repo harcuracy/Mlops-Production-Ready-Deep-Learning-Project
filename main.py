@@ -4,7 +4,7 @@ from src.cnnClassifier.pipeline.stage_02_prepare_base_model import PrepareBaseMo
 from src.cnnClassifier.pipeline.stage_03_training import TrainingPipeline
 from src.cnnClassifier.pipeline.stage_04_evaluation import EvaluationPipeline
 
-STAGE_NAME = "Data Ingestion Stage"
+"""STAGE_NAME = "Data Ingestion Stage"
 
 if __name__ == "__main__":
     try:
@@ -16,7 +16,7 @@ if __name__ == "__main__":
 
     except Exception as e:
         raise e
-    
+    """
 
 STAGE_NAME = "Prepare Base Model Stage"
 
@@ -31,7 +31,6 @@ if __name__ == "__main__":
 
     except Exception as e:
         raise e
-
 
 
 

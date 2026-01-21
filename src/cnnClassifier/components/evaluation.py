@@ -1,4 +1,5 @@
 import tensorflow as tf
+from tensorflow.keras.applications.resnet50 import preprocess_input
 from pathlib import Path
 import mlflow
 import mlflow.keras
@@ -30,7 +31,7 @@ class Evaluation:
         #CASE 1: Use separate testing data
         if self.config.testing_data is not None:
             valid_datagenerator = tf.keras.preprocessing.image.ImageDataGenerator(
-                rescale=1. / 255
+                preprocessing_function=preprocess_input
             )
 
             self.valid_generator = valid_datagenerator.flow_from_directory(
@@ -41,8 +42,8 @@ class Evaluation:
         #CASE 2: Use validation split from training data
         else:
             valid_datagenerator = tf.keras.preprocessing.image.ImageDataGenerator(
-                rescale=1. / 255,
-                validation_split=0.30
+                preprocessing_function=preprocess_input,
+                validation_split=0.20
             )
 
             self.valid_generator = valid_datagenerator.flow_from_directory(
@@ -98,6 +99,13 @@ class Evaluation:
                 "model",
                 registered_model_name="resnet50Model"
             )
+
+
+    
+
+    
+        
+                                                                           
 
 
     

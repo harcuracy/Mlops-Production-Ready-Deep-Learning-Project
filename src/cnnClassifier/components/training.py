@@ -2,11 +2,15 @@ import os
 import urllib.request as request
 from zipfile import ZipFile
 import tensorflow as tf
+from tensorflow.keras.applications.resnet50 import preprocess_input
 import time
 from pathlib import Path
 
 
 from cnnClassifier.entity.config_entity import TrainingConfig
+from cnnClassifier import logger
+
+
 
 
 
@@ -17,15 +21,13 @@ from cnnClassifier.entity.config_entity import TrainingConfig
 class Training:
     def __init__(self, config: TrainingConfig):
         self.config = config
+        self.class_indices = None
+        self.index_to_class = None
 
-
-    # Load model
     def get_base_model(self):
         self.model = tf.keras.models.load_model(
             self.config.updated_base_model_path
         )
-
-    # Data generators
 
     def train_valid_generator(self):
 
@@ -35,95 +37,56 @@ class Training:
             interpolation="bilinear"
         )
 
-        # CASE 1: Separate training and validation directories
-        if self.config.validation_data is not None:
+        datagenerator_kwargs = dict(
+            preprocessing_function=preprocess_input,
+            validation_split=0.20
+        )
 
+        valid_datagenerator = tf.keras.preprocessing.image.ImageDataGenerator(
+            **datagenerator_kwargs
+        )
+
+        if self.config.params_is_augmentation:
             train_datagenerator = tf.keras.preprocessing.image.ImageDataGenerator(
-                rescale=1./255,
-                rotation_range=10 if self.config.params_is_augmentation else 0,
-                horizontal_flip=self.config.params_is_augmentation,
-                width_shift_range=0.2 if self.config.params_is_augmentation else 0,
-                height_shift_range=0.2 if self.config.params_is_augmentation else 0,
-                shear_range=0.2 if self.config.params_is_augmentation else 0,
-                zoom_range=0.2 if self.config.params_is_augmentation else 0,
-            )
-
-            valid_datagenerator = tf.keras.preprocessing.image.ImageDataGenerator(
-                rescale=1./255
-            )
-
-            self.train_generator = train_datagenerator.flow_from_directory(
-                directory=self.config.training_data,
-                shuffle=True,
-                **dataflow_kwargs
-            )
-
-            self.valid_generator = valid_datagenerator.flow_from_directory(
-                directory=self.config.validation_data,
-                shuffle=False,
-                **dataflow_kwargs
-            )
-
-        
-        # CASE 2: Single directory (internal validation split)
-    
-        else:
-            datagenerator_kwargs = dict(
-                rescale=1./255,
-                validation_split=0.20
-            )
-
-            valid_datagenerator = tf.keras.preprocessing.image.ImageDataGenerator(
+                rotation_range=10,
+                horizontal_flip=True,
+                width_shift_range=0.2,
+                height_shift_range=0.2,
+                shear_range=0.2,
+                zoom_range=0.2,
                 **datagenerator_kwargs
             )
+        else:
+            train_datagenerator = valid_datagenerator
 
-            if self.config.params_is_augmentation:
-                train_datagenerator = tf.keras.preprocessing.image.ImageDataGenerator(
-                    rotation_range=10,
-                    horizontal_flip=True,
-                    width_shift_range=0.2,
-                    height_shift_range=0.2,
-                    shear_range=0.2,
-                    zoom_range=0.2,
-                    **datagenerator_kwargs
-                )
-            else:
-                train_datagenerator = valid_datagenerator
+        self.train_generator = train_datagenerator.flow_from_directory(
+            directory=self.config.training_data,
+            subset="training",
+            shuffle=True,
+            **dataflow_kwargs
+        )
 
-            self.train_generator = train_datagenerator.flow_from_directory(
-                directory=self.config.training_data,
-                subset="training",
-                shuffle=True,
-                **dataflow_kwargs
-            )
-
-            self.valid_generator = valid_datagenerator.flow_from_directory(
-                directory=self.config.training_data,
-                subset="validation",
-                shuffle=False,
-                **dataflow_kwargs
-            )
+        self.valid_generator = valid_datagenerator.flow_from_directory(
+            directory=self.config.training_data,
+            subset="validation",
+            shuffle=False,
+            **dataflow_kwargs
+        )
 
     
-    # Save model function
+        self.class_indices = self.train_generator.class_indices
+        self.index_to_class = {v: k for k, v in self.class_indices.items()}
 
-    @staticmethod
-    def save_model(path: Path, model: tf.keras.Model):
-        model.save(path)
-
-    
-    # Train function
+        self.show_class_labels()
 
     def train(self):
 
         self.steps_per_epoch = (
-            self.train_generator.samples
-            // self.train_generator.batch_size
+            self.train_generator.samples // self.train_generator.batch_size
         )
 
         self.validation_steps = (
-            self.valid_generator.samples
-            // self.valid_generator.batch_size
+            self.valid_generator.samples // self.valid_generator.batch_size
         )
 
         self.model.fit(
@@ -138,3 +101,14 @@ class Training:
             path=self.config.trained_model_path,
             model=self.model
         )
+
+    def show_class_labels(self):
+        logger.info("Class indices (folder name to index):")
+        logger.info(self.class_indices)
+
+        logger.info("Index to class mapping:")
+        logger.info(self.index_to_class)
+
+    @staticmethod
+    def save_model(path: Path, model: tf.keras.Model):
+        model.save(path)

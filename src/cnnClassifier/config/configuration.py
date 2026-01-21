@@ -52,8 +52,9 @@ class ConfigurationManager:
         training = self.Config.training
         prepare_base_model = self.Config.prepare_base_model
         params = self.Params
-        training_data = os.path.join(self.Config.data_ingestion.unzip_dir,"Data","train")
-        validation_data = os.path.join(self.Config.data_ingestion.unzip_dir,"Data","valid")
+        training_data = os.path.join(self.Config.data_ingestion.unzip_dir,"The IQ-OTHNCCD lung cancer dataset","The IQ-OTHNCCD lung cancer dataset")
+        #validation_data = os.path.join(self.Config.data_ingestion.unzip_dir,"Data","valid")
+        #artifacts\data_ingestion\The IQ-OTHNCCD lung cancer dataset
 
         create_directories([Path(training.root_dir)])
 
@@ -77,7 +78,7 @@ class ConfigurationManager:
 
         evaluation_config = EvaluationConfig(
             path_of_model= Path(training.trained_model_path),
-            training_data= os.path.join(self.Config.data_ingestion.unzip_dir,"Data", "train"),
+            training_data= os.path.join(self.Config.data_ingestion.unzip_dir,"The IQ-OTHNCCD lung cancer dataset","The IQ-OTHNCCD lung cancer dataset"),
             testing_data=  None, #os.path.join(self.Config.data_ingestion.unzip_dir,"Data","test"), # None
             mlflow_uri= model_uri,
             all_params= self.Params,

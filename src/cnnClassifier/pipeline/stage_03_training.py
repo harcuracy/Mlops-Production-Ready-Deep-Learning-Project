@@ -16,6 +16,7 @@ class TrainingPipeline:
         training = Training(config = training_config)
         training.get_base_model()
         training.train_valid_generator()
+        training.show_class_labels
         training.train()
 
 
