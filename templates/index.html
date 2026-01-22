@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Object Classification</title>
+<style>
+    body { background-color: #f6f9fc; font-family: Arial; padding: 20px; }
+    h1 { text-align: center; margin-bottom: 30px; }
+    .container { display: grid; grid-template-columns: repeat(3, 300px); gap: 30px; justify-content: center; }
+    .box { height: 260px; border: 1px solid #d1d5db; background-color: white; display: flex; justify-content: center; align-items: center; flex-direction: column; }
+    .image-box img { max-width: 100%; max-height: 100%; }
+    .button-group { margin-top: 15px; display: flex; gap: 10px; }
+    .btn { padding: 8px 20px; border: none; color: white; font-size: 14px; cursor: pointer; border-radius: 3px; }
+    .upload-btn { background-color: #2563eb; }
+    .predict-btn { background-color: #16a34a; }
+    .result-box { color: #6b7280; font-size: 15px; font-weight: 500; text-align: center; }
+</style>
+</head>
+<body>
+
+<h1>Object Classification</h1>
+
+<div class="container">
+
+    <!-- IMAGE BOX -->
+    <div class="box image-box">
+        <img id="preview" src="" alt="Upload Image">
+        <div class="button-group">
+            <input type="file" id="upload" hidden accept="image/*">
+            <label for="upload" class="btn upload-btn">Upload</label>
+            <button class="btn predict-btn" onclick="predict()">Predict</button>
+        </div>
+    </div>
+
+    <!-- CLASS RESULT -->
+    <div class="box result-box" id="result1">Class Name</div>
+
+    <!-- CONFIDENCE RESULT -->
+    <div class="box result-box" id="result2">Confidence</div>
+
+</div>
+
+<script>
+    const upload = document.getElementById("upload");
+    const preview = document.getElementById("preview");
+
+    upload.addEventListener("change", function () {
+        const file = this.files[0];
+        if (file) {
+            preview.src = URL.createObjectURL(file);
+        }
+    });
+
+    async function predict() {
+        const file = upload.files[0];
+        if (!file) return alert("Please upload an image!");
+
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = async () => {
+            const base64Image = reader.result.split(',')[1]; // remove "data:image/...;base64,"
+
+            try {
+                const response = await fetch("http://localhost:8080/predict", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ image: base64Image })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    alert("Error: " + data.error);
+                } else {
+                    document.getElementById("result1").innerText = data.class_name;
+                    document.getElementById("result2").innerText = "Confidence: " + data.confidence.toFixed(2);
+                }
+
+            } catch (err) {
+                alert("Prediction failed: " + err);
+            }
+        };
+    }
+</script>
+
+</body>
+</html>

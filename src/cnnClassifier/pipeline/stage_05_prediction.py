@@ -1,5 +1,6 @@
 import os
 import numpy as np
+
 import tensorflow as tf
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications.resnet50 import preprocess_input
@@ -27,32 +28,26 @@ class PredictionPipeline:
         # Expand batch dimension
         img_array = np.expand_dims(img_array, axis=0)
 
-        # ResNet0 preprocessing
+        # Preprocess for ResNet50
         img_array = preprocess_input(img_array)
 
         # Predict
         predictions = model.predict(img_array)
 
-        # Output
-        predicted_class = np.argmax(predictions, axis=1)[0]
-        confidence = np.max(predictions)
+        # Get predicted class index and confidence
+        predicted_class_idx = np.argmax(predictions, axis=1)[0]
+        confidence = float(np.max(predictions))  # convert to float for JSON
 
-        logger.info(f"Predictions: {predictions}")
-
-
-        label = []
-
-
-        if predicted_class == 0:
-            prediction = "bengin"
-            return prediction
-
-        elif predicted_class == 1:
-            prediction ="malignant"
-            return prediction
+        # Map index to class name
+        if predicted_class_idx == 0:
+            class_name = "benign"
+        elif predicted_class_idx == 1:
+            class_name = "malignant"
         else:
-            prediction = "normal"
-            return prediction
-        label = label.append(prediction)
-    
-        logger.info(f"label: {label}")
+            class_name = "normal"
+
+        return {
+            "class_name": class_name,
+            "confidence": confidence
+        }
+
