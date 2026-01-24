@@ -28,7 +28,7 @@
         <div class="button-group">
             <input type="file" id="upload" hidden accept="image/*">
             <label for="upload" class="btn upload-btn">Upload</label>
-            <button class="btn predict-btn" onclick="predict()">Predict</button>
+            <button class="btn predict-btn" id="predict-btn">Predict</button>
         </div>
     </div>
 
@@ -43,7 +43,9 @@
 <script>
     const upload = document.getElementById("upload");
     const preview = document.getElementById("preview");
+    const predictBtn = document.getElementById("predict-btn");
 
+    // Show image preview when uploaded
     upload.addEventListener("change", function () {
         const file = this.files[0];
         if (file) {
@@ -51,21 +53,28 @@
         }
     });
 
-    async function predict() {
+    // Predict button click
+    predictBtn.addEventListener("click", async () => {
         const file = upload.files[0];
         if (!file) return alert("Please upload an image!");
 
         const reader = new FileReader();
         reader.readAsDataURL(file);
+
         reader.onload = async () => {
-            const base64Image = reader.result.split(',')[1]; // remove "data:image/...;base64,"
+            const base64Image = reader.result.split(',')[1]; // remove data:image/...;base64,
 
             try {
-                const response = await fetch("http://localhost:8080/predict", {
+                // Update this URL with your EC2 public IP or domain
+                const response = await fetch("http://35.168.251.82:8080/predict", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ image: base64Image })
                 });
+
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                }
 
                 const data = await response.json();
 
@@ -77,10 +86,11 @@
                 }
 
             } catch (err) {
-                alert("Prediction failed: " + err);
+                console.error(err);
+                alert("Prediction failed: " + err.message);
             }
         };
-    }
+    });
 </script>
 
 </body>
