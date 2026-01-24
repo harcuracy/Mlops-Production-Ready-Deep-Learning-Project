@@ -3,12 +3,10 @@
 assignments/
 docs/
 flowcharts/
-artifacts/dat_ingestion/
+artifacts/data_ingestion/
 artifacts/prepare_base_model/
 logs/
 notebooks/
 venv/
 
 
-# Include only the training model
-!artifacts/training/model.h5
