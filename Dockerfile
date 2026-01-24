@@ -1,6 +1,12 @@
 FROM python:3.10-slim-buster
 
-RUN apt update -y && apt install -y unzip curl
+FROM python:3.10-slim-bookworm
+
+# Install dependencies
+RUN apt update -y && apt install -y unzip curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install AWS CLI v2
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
     && unzip awscliv2.zip \
     && ./aws/install \
