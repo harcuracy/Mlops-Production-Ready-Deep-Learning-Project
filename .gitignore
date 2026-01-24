@@ -135,7 +135,10 @@ celerybeat.pid
 *.sage.py
 # artifact
 
-artifacts/
+artifacts/data_ingestion
+artifacts/prepare_base_model
+
+
 
 # Environments
 .env
