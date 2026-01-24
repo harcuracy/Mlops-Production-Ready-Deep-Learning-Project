@@ -23,7 +23,7 @@ uv venv --python 3.10
 ```bash
 uv pip install -r requirements.txt
 ```
-## create iam user
+## create iam user in aws
 
 #with specific access
 
