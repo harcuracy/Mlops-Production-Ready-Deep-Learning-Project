@@ -1,51 +1,198 @@
-# Mlops-Production-Ready-Deep-Learning-Project
+# Lung Disease Classification – MLOps Production Ready
 
-## Workflows
+## Overview
 
+This project implements a **Lung Disease Classification** system using **Deep Learning** with **Transfer Learning (ResNet50)**. It is designed as a **production-ready MLOps pipeline**, covering the full lifecycle from training to deployment.
 
-1. Update config.yaml
-2. Update params.yaml
-3. Update the entity in src
-4. Update the configuration manager in src config
-5. Update the components
-6. Update the pipeline
-7. Update the main.py
-8. Update the dvc.yaml
+The application allows users to upload lung images via a web interface and receive real-time predictions, while the backend is fully automated using Docker, Jenkins, and AWS services.
 
-```bash
-uv venv --python 3.10
+---
+
+## Key Features
+
+- Transfer Learning using **ResNet50**
+- End-to-end **ML pipeline** (dataIngestion → prepareBaseModel → training → evaluation → inference)
+- **Flask** web application for predictions
+- **Dockerized** application
+- **CI/CD pipeline** using Jenkins
+- Deployment on **AWS EC2** with images stored in **Amazon ECR**
+- Production-ready structure with logs, artifacts, and pipelines
+
+---
+
+## Project Structure
+
+```
+.github/                  # GitHub workflows
+.jenkins/                 # Jenkins pipeline files
+config/                   # Configuration settings
+temlates/                 # Frontend
+flowcharts/               # Architecture diagrams
+artifacts/                # Generated artifacts
+│   └── training/
+│       └── model.h5      # Trained model
+logs/                     # Logs
+research/                # Jupyter notebooks
+src/                      # Core source code
+│   └── cnnClassifier/    # CNN logic and utilities
+│           # Pipeline stages
+main.py                   # Run full ML pipeline
+app.py                    # Flask web application
+Dockerfile                # Docker configuration
+requirements.txt          # Python dependencies
 ```
 
-```bash
-.venv\Scripts\activate
-```
+---
+
+## Model Details
+
+- **Base Model**: ResNet50 (pre-trained on ImageNet)
+- **Approach**: Transfer Learning
+- **Framework**: TensorFlow / Keras
+- **Saved Model Path**: `artifacts/training/model.h5`
+
+---
+
+## Running the Pipeline Locally
+
+To run the complete ML pipeline (data ingestion → prepare model → training → evaluation):
 
 ```bash
-uv pip install -r requirements.txt
+python main.py
 ```
-## create iam user in aws
 
-#with specific access
+This will generate all required artifacts including the trained model.
 
-1. EC2 access : It is virtual machine
+---
 
-2. ECR: Elastic Container registry to save your docker image in aws
+## Running the Web Application Locally
 
+1. Create a virtual environment:
 
-#Description: About the deployment
+```bash
+python -m venv venv
+source venv/bin/activate   # Linux / Mac
+venv\Scripts\activate      # Windows
+```
 
-1. Build docker image of the source code
+2. Install dependencies:
 
-2. Push your docker image to ECR
+```bash
+pip install -r requirements.txt
+```
 
-3. Launch Your EC2 
+3. Start the Flask app:
 
-4. Pull Your image from ECR in EC2
+```bash
+python app.py
+```
 
-5. Lauch your docker image in EC2
+4. Open in browser:
 
-#Policy:
+```
+http://localhost:8080
+```
 
-1. AmazonEC2ContainerRegistryFullAccess
+> ⚠️ **Important:** When running locally, ensure the frontend JavaScript `fetch()` URL points to:
+>
+```js
+http://localhost:8080/predict
+```
 
-2. AmazonEC2FullAccess
+---
+
+## Docker Usage
+
+### Build Image
+
+```bash
+docker build -t lung-classification:latest .
+```
+
+### Run Container
+
+```bash
+docker run -d -p 8080:8080 --name lung-app lung-classification:latest
+```
+
+Access the app at:
+
+```
+http://localhost:8080
+```
+
+---
+
+## AWS Deployment (EC2 + ECR + Jenkins)
+
+### Architecture
+
+- **EC2 Instance 1**: Jenkins (CI/CD server)
+- **EC2 Instance 2**: Web application host
+- **Amazon ECR**: Docker image repository
+
+### Deployment Flow
+
+1. Create an IAM user and save **Access Key** and **Secret Key**
+2. Create two EC2 instances:
+   - Jenkins EC2
+   - Web App EC2
+3. Configure Jenkins credentials:
+
+```
+ECR_REPOSITORY
+AWS_ACCOUNT_ID
+AWS_ACCESS_KEY_ID
+AWS_SECRET_ACCESS_KEY
+ssh_key (Jenkins EC2 SSH key)
+```
+
+4. Connect GitHub to Jenkins using webhook and tokens
+5. On every GitHub push:
+   - Jenkins builds Docker image
+   - Pushes image to ECR
+   - SSHs into Web EC2
+   - Pulls latest image
+   - Stops old container
+   - Deploys latest container
+
+6. Access the app using the Web EC2 public IP:
+
+```
+http://<EC2_PUBLIC_IP>:8080
+```
+
+---
+
+## Frontend Note
+
+If someone wants to run this project **locally**, they must update the frontend API URL.
+
+Example dynamic approach:
+
+```js
+const API_URL = window.location.hostname === "localhost"
+  ? "http://localhost:8080/predict"
+  : "http://<EC2_PUBLIC_IP>:8080/predict";
+```
+
+---
+
+## Notes
+
+- Ensure `artifacts/training/model.h5` is **not excluded** in `.dockerignore`
+- Docker image must include the trained model for predictions to work
+- Flask CORS is enabled for frontend-backend communication
+
+---
+
+## Author
+
+**Harcuracy**
+
+---
+
+## Status
+
+✅ Project is fully working and production-ready
+
